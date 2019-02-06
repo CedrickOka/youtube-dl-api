@@ -28,7 +28,7 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
 	&& mv composer.phar /usr/local/bin/composer \
 	&& chmod +x /usr/local/bin/composer
 
-RUN git clone -b master https://github.com/CedrickOka/youtube-dl-api.git ./ \
+RUN git clone -b 0.0.0 https://github.com/CedrickOka/youtube-dl-api.git ./ \
     && composer install --no-dev --no-interaction --optimize-autoloader --classmap-authoritative \
     && composer clear-cache
 
