@@ -34,6 +34,7 @@ RUN git clone -b 0.0.0 https://github.com/CedrickOka/youtube-dl-api.git ./ \
 
 ENV APP_ENV=prod
 ENV APP_SECRET=598d01f22edceea6bf7c5ace30929f41
+ENV LC_ALL=fr_FR.UTF-8
 
 COPY youtube-dl.conf /etc/youtube-dl.conf
 
