@@ -63,7 +63,7 @@ class DownloadController extends AbstractController
 				$commands[] = sprintf('curl -X POST %s -H \'Accept: application/json\' -H \'Content-Type: application/json\' -d \'{"filename": "{}"}\'', $requestContent['redirectUrl']);
 			}
 			
-			shell_exec(sprintf('youtube-dl -f best %s --exec "%s" %s &', implode(' ', $options), implode(' && ', $commands), $requestContent['url']));
+			shell_exec(sprintf('youtube-dl -f best --audio-quality 0 %s --exec \'%s\' %s >> /dev/stdout 2>> /dev/stderr &', implode(' ', $options), implode(' && ', $commands), $requestContent['url']));
 		});
 		
 		return new Response(null, 204, ['Content-Type' => 'application/json']);
@@ -77,14 +77,14 @@ class DownloadController extends AbstractController
 	 * @param string $protocol
 	 * @param string $format
 	 * @param array $requestContent
-	 * @Route(name="app_read_downloads", path="/downloads/{filename}", methods={"GET", "HEAD"})
+	 * @Route(name="app_read_downloads", path="/downloads/{filename}", methods={"GET", "HEAD"}, requirements={"filename": ".+"})
 	 * @AccessControl(version="v1", protocol="rest", formats="json")
 	 */
 	public function read(Request $request, $version, $protocol, $format, string $filename) {
 		if (false === file_exists($filename)) {
 			return $this->errorFactory->create($this->get('translator')->trans('download.file.not_found', ['%address%' => $filename], 'app'), 404, null, [], 404);
 		}
-				
+		
 		if (true === $request->isMethod('HEAD')) {
 			$finfo = finfo_open(FILEINFO_MIME_TYPE);
 			
