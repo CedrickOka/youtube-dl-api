@@ -1,0 +1,5 @@
+controllers:
+    resource: ../../src/Controller/
+    type: annotation
+    prefix: /{version}/{protocol}
+    defaults: { version: v1, protocol: rest }

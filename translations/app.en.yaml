@@ -1,0 +1,6 @@
+download:
+    bad_request: 'The parameters for the query are not valid.'
+    dependency_failed: 'The requested action depended on another action and that action failed.'
+    file:
+        not_found: 'No files were found at %address%.'
+        not_allowed: 'Could not download file to address %address%.'

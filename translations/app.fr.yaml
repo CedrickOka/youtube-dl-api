@@ -1,0 +1,6 @@
+download:
+    bad_request: 'Les paramètres pour la requête ne sont pas valides.'
+    dependency_failed: 'L''action démandée dépend d''une autre action et cette action a échoué.'
+    file:
+        not_found: 'Aucun fichier n''a ete trouve à l''adresse %address%.'
+        not_allowed: 'Impossible de telecharger le fichier à l''adresse %address%.'
