@@ -28,13 +28,13 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
 	&& mv composer.phar /usr/local/bin/composer \
 	&& chmod +x /usr/local/bin/composer
 
-RUN git clone -b 0.1.0 https://github.com/CedrickOka/youtube-dl-api.git ./ \
+RUN git clone -b 0.2.0 https://github.com/CedrickOka/youtube-dl-api.git ./ \
     && composer install --no-dev --no-interaction --optimize-autoloader --classmap-authoritative \
     && composer clear-cache
 
 ENV APP_ENV=prod
 ENV APP_SECRET=598d01f22edceea6bf7c5ace30929f41
-ENV LC_ALL=fr_FR.UTF-8
+ENV LC_ALL=C
 
 COPY youtube-dl.conf /etc/youtube-dl.conf
 

@@ -7,6 +7,7 @@
 		"ext-ctype": "*",
 		"ext-iconv": "*",
 		"coka/api-bundle": "^3.0",
+		"guzzlehttp/guzzle": "^6.3",
 		"symfony/console": "4.2.*",
 		"symfony/dotenv": "4.2.*",
 		"symfony/flex": "^1.1",

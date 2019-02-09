@@ -1,6 +1,7 @@
 <?php
 namespace App\Controller;
 
+use App\Command\DownloadCommand;
 use Oka\ApiBundle\Annotation\AccessControl;
 use Oka\ApiBundle\Annotation\RequestContent;
 use Oka\ApiBundle\Service\ErrorResponseFactory;
@@ -23,7 +24,6 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
  */
 class DownloadController extends AbstractController
 {
-	
 	/**
 	 * @var ErrorResponseFactory $errorFactory
 	 */
@@ -43,7 +43,7 @@ class DownloadController extends AbstractController
 	 * @param array $requestContent
 	 * @Route(name="app_create_downloads", path="/downloads", methods="POST")
 	 * @AccessControl(version="v1", protocol="rest", formats="json")
-	 * @RequestContent(constraints="itemConstraints", enable_validation=false)
+	 * @RequestContent(constraints="itemConstraints")
 	 */
 	public function create(Request $request, $version, $protocol, $format, array $requestContent, EventDispatcherInterface $dispatcher) {
 		if (!shell_exec('command -v youtube-dl')) {
@@ -52,18 +52,16 @@ class DownloadController extends AbstractController
 		
 		$dispatcher->addListener(KernelEvents::TERMINATE, function(PostResponseEvent $event) use ($requestContent) {
 			$options = [];
-			$commands = ['chmod -R 0755 {}'];
 			
 			if (true === isset($requestContent['extractAudio'])) {
 				$options[] = '-x';
-				$options[] = sprintf('--audio-format %s', $requestContent['audioFormat'] ?? 'mp3');
+				$options[] = sprintf('--audio-format=%s', $requestContent['audioFormat'] ?? 'mp3');
 			}
-			
 			if (true === isset($requestContent['redirectUrl'])) {
-				$commands[] = sprintf('curl -X POST %s -H \'Accept: application/json\' -H \'Content-Type: application/json\' -d \'{"filename": "{}"}\'', $requestContent['redirectUrl']);
+				$options[] = sprintf('--redirect-url="%s"', $requestContent['redirectUrl']);
 			}
 			
-			shell_exec(sprintf('youtube-dl -f best --audio-quality 0 %s --exec \'%s\' %s >> /dev/stdout 2>> /dev/stderr &', implode(' ', $options), implode(' && ', $commands), $requestContent['url']));
+			shell_exec(sprintf('php %s/bin/console %s %s "%s" >> /dev/stdout 2>&1 &', $this->getParameter('kernel.project_dir'), DownloadCommand::getDefaultName(), implode(' ', $options), $requestContent['url']));
 		});
 		
 		return new Response(null, 204, ['Content-Type' => 'application/json']);

@@ -25,3 +25,9 @@ services:
         tags: ['controller.service_arguments']
         bind:
             $errorFactory: '@oka_api.error_response.factory'
+
+    App\Command\:
+        resource: '../src/Command/*'
+        bind:
+            $binDir: '%kernel.project_dir%/bin' 
+        tags: ['console.command']
