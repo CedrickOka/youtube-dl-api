@@ -91,11 +91,11 @@ class DownloadController extends AbstractController
 				continue;
 			}
 			
-			$directory = is_dir($entry);
+			$path = sprintf('%s/%s', $this->getParameter('assets_dir'), $entry);
 			$files[] = [
 					'name' => basename($entry),
-					'directory' => $directory,
-					'size' => true === $directory ? 0 : @filesize($entry) ?: 0
+					'directory' => is_dir($path),
+					'size' => (int) @filesize($path)
 			];
 		}
 		closedir($resource);
