@@ -8,14 +8,15 @@ use Oka\ApiBundle\Service\ErrorResponseFactory;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Event\PostResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  *
@@ -68,6 +69,41 @@ class DownloadController extends AbstractController
 	}
 	
 	/**
+	 * List files downloaded
+	 *
+	 * @param Request $request
+	 * @param string $version
+	 * @param string $protocol
+	 * @param string $format
+	 * @param array $requestContent
+	 * @Route(name="app_list_downloads", path="/downloads", methods="GET")
+	 * @AccessControl(version="v1", protocol="rest", formats="json")
+	 */
+	public function list(Request $request, $version, $protocol, $format) {
+		if (!$resource = @opendir($this->getParameter('assets_dir'))) {
+			return $this->errorFactory->create($this->get('translator')->trans('download.unexpected_error', [], 'app'), 500, null, [], 500);
+		}
+		
+		$files = [];
+		
+		while (false !== ($entry = readdir($resource))) {
+			if ('.' === $entry || '..' === $entry) {
+				continue;
+			}
+			
+			$directory = is_dir($entry);
+			$files[] = [
+					'name' => basename($entry),
+					'directory' => $directory,
+					'size' => true === $directory ? 0 : @filesize($entry) ?: 0
+			];
+		}
+		closedir($resource);
+		
+		return new JsonResponse($files, 200);
+	}
+	
+	/**
 	 * Get file downloaded
 	 * 
 	 * @param Request $request
@@ -79,23 +115,50 @@ class DownloadController extends AbstractController
 	 * @AccessControl(version="v1", protocol="rest", formats="json")
 	 */
 	public function read(Request $request, $version, $protocol, $format, string $filename) {
-		if (false === file_exists($filename)) {
-			return $this->errorFactory->create($this->get('translator')->trans('download.file.not_found', ['%address%' => $filename], 'app'), 404, null, [], 404);
+		$path = sprintf('%s/%s', $this->getParameter('assets_dir'), $filename);
+		
+		if (false === file_exists($path)) {
+			return $this->errorFactory->create($this->get('translator')->trans('download.file.not_found', ['%filename%' => $filename], 'app'), 404, null, [], 404);
 		}
 		
 		if (true === $request->isMethod('HEAD')) {
 			$finfo = finfo_open(FILEINFO_MIME_TYPE);
 			
-			return new Response(null, 204, ['Content-Type' => filesize($filename), 'Content-Length' => finfo_file($finfo, $filename)]);
+			return new Response(null, 204, ['Content-Type' => filesize($path), 'Content-Length' => finfo_file($finfo, $path)]);
 		}
 		
-		$response = new BinaryFileResponse($filename, 200, [], ResponseHeaderBag::DISPOSITION_ATTACHMENT);
+		$response = new BinaryFileResponse($path, 200, [], ResponseHeaderBag::DISPOSITION_ATTACHMENT);
 		
 		if (true === $request->query->has('deleteFileAfterSend')) {
 			$response->deleteFileAfterSend(true);
 		}
 		
 		return $response;
+	}
+	
+	/**
+	 * Delete file downloaded
+	 *
+	 * @param Request $request
+	 * @param string $version
+	 * @param string $protocol
+	 * @param string $format
+	 * @param array $requestContent
+	 * @Route(name="app_delete_downloads", path="/downloads/{filename}", methods="DELETE", requirements={"filename": ".+"})
+	 * @AccessControl(version="v1", protocol="rest", formats="json")
+	 */
+	public function delete(Request $request, $version, $protocol, $format, string $filename) {
+		$path = sprintf('%s/%s', $this->getParameter('assets_dir'), $filename);
+		
+		if (false === file_exists($path)) {
+			return $this->errorFactory->create($this->get('translator')->trans('download.file.not_found', ['%filename%' => $filename], 'app'), 404, null, [], 404);
+		}
+		
+		if (false === unlink($path)) {
+			return $this->errorFactory->create($this->get('translator')->trans('download.unexpected_error', [], 'app'), 400, null, [], 400);
+		}
+		
+		return new Response(null, 204, ['Content-Type' => 'application/json']);
 	}
 	
 	public static function getSubscribedServices() {

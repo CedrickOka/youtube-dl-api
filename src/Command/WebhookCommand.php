@@ -114,7 +114,7 @@ EOF
 							'eventType' => $input->getOption('event-type'),
 							'resource' => [
 									'sourceUrl' => $input->getOption('source-url'),
-									'filename' => $input->getOption('filename')
+									'filename' => basename($input->getOption('filename'))
 							]
 					]
 			]);
