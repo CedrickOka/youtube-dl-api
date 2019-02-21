@@ -17,6 +17,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  *
@@ -46,15 +47,20 @@ class DownloadController extends AbstractController
 	 * @AccessControl(version="v1", protocol="rest", formats="json")
 	 * @RequestContent(constraints="itemConstraints")
 	 */
-	public function create(Request $request, $version, $protocol, $format, array $requestContent, EventDispatcherInterface $dispatcher) {
+	public function create(Request $request, $version, $protocol, $format, array $requestContent, EventDispatcherInterface $dispatcher, LoggerInterface $logger) {
 		if (!shell_exec('command -v youtube-dl')) {
 			return $this->errorFactory->create($this->get('translator')->trans('download.dependency_failed', [], 'app'), 424, null, [], 424);
 		}
 		
 		if (true === $request->query->has('simulate')) {
-			$output = shell_exec(sprintf('youtube-dl -s -j --no-warnings "%s"', $requestContent['url']));
-			
-			return new JsonResponse(trim($output), 201);
+			if ($output = shell_exec(sprintf('youtube-dl -s -j --no-warnings "%s"', $requestContent['url']))) {
+				$output = trim($output);
+				
+				if (!preg_match('#^(.*)ERROR:(.*)$#i', $output)) {
+					return new Response($output, 200, ['Content-Type' => 'application/json']);
+				}
+			}
+			return new JsonResponse(['error' => ['message' => $output ?? 'Bad URL.']], 400);
 		}
 		
 		$dispatcher->addListener(KernelEvents::TERMINATE, function(PostResponseEvent $event) use ($requestContent) {

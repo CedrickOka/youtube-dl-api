@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+#### 1.1.1 (2019-02-21)
+
+* Fixed bug.
+
 #### 1.1.0 (2019-02-21)
 
 * Allow to retrieve info from url.
