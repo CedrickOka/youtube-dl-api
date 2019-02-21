@@ -51,6 +51,12 @@ class DownloadController extends AbstractController
 			return $this->errorFactory->create($this->get('translator')->trans('download.dependency_failed', [], 'app'), 424, null, [], 424);
 		}
 		
+		if (true === $request->query->has('simulate')) {
+			$output = shell_exec(sprintf('youtube-dl -s -j --no-warnings "%s"', $requestContent['url']));
+			
+			return new JsonResponse(trim($output), 201);
+		}
+		
 		$dispatcher->addListener(KernelEvents::TERMINATE, function(PostResponseEvent $event) use ($requestContent) {
 			$options = [];
 			
@@ -65,7 +71,7 @@ class DownloadController extends AbstractController
 			shell_exec(sprintf('php %s/bin/console %s %s "%s" >> /dev/stdout 2>&1 &', $this->getParameter('kernel.project_dir'), DownloadCommand::getDefaultName(), implode(' ', $options), $requestContent['url']));
 		});
 		
-		return new Response(null, 204, ['Content-Type' => 'application/json']);
+		return new JsonResponse(null, 204);
 	}
 	
 	/**
@@ -158,7 +164,7 @@ class DownloadController extends AbstractController
 			return $this->errorFactory->create($this->get('translator')->trans('download.unexpected_error', [], 'app'), 400, null, [], 400);
 		}
 		
-		return new Response(null, 204, ['Content-Type' => 'application/json']);
+		return new JsonResponse(null, 204);
 	}
 	
 	public static function getSubscribedServices() {

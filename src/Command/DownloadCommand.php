@@ -96,7 +96,7 @@ EOF
 		}
 		
 		$out = $status = null;
-		$command = sprintf('youtube-dl -f best --audio-quality 0 %s --exec \'%s\' %s &', implode(' ', $options), implode(' && ', $commands), $input->getArgument('url'));
+		$command = sprintf('youtube-dl -f best --audio-quality 0 --restrict-filenames --yes-playlist %s --exec \'%s\' \'%s\' &', implode(' ', $options), implode(' && ', $commands), $input->getArgument('url'));
 		exec($command, $out, $status);
 		
 		if ((int) $status > 0 && null !== $input->getOption('redirect-url')) {
