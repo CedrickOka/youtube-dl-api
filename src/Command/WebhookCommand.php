@@ -85,6 +85,7 @@ EOF
 			});
 			$questions['event-type'] = $question;
 		}
+		
 		if (!$input->getOption('source-url')) {
 			$question = new Question('Please choose a source url:');
 			$question->setValidator(function($process){

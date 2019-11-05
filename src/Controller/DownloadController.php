@@ -2,22 +2,22 @@
 namespace App\Controller;
 
 use App\Command\DownloadCommand;
-use Oka\ApiBundle\Annotation\AccessControl;
-use Oka\ApiBundle\Annotation\RequestContent;
-use Oka\ApiBundle\Service\ErrorResponseFactory;
+use Oka\RESTRequestValidatorBundle\Annotation\AccessControl;
+use Oka\RESTRequestValidatorBundle\Annotation\RequestContent;
+use Oka\RESTRequestValidatorBundle\Service\ErrorResponseFactory;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
-use Symfony\Component\HttpKernel\Event\PostResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpKernel\Event\PostResponseEvent;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Psr\Log\LoggerInterface;
 
 /**
  *
@@ -26,15 +26,6 @@ use Psr\Log\LoggerInterface;
  */
 class DownloadController extends AbstractController
 {
-	/**
-	 * @var ErrorResponseFactory $errorFactory
-	 */
-	protected $errorFactory;
-	
-	public function __construct(ErrorResponseFactory $errorFactory) {
-		$this->errorFactory = $errorFactory;
-	}
-	
 	/**
 	 * Create a download
 	 * 
@@ -49,7 +40,7 @@ class DownloadController extends AbstractController
 	 */
 	public function create(Request $request, $version, $protocol, $format, array $requestContent, EventDispatcherInterface $dispatcher, LoggerInterface $logger) {
 		if (!shell_exec('command -v youtube-dl')) {
-			return $this->errorFactory->create($this->get('translator')->trans('download.dependency_failed', [], 'app'), 424, null, [], 424);
+			return $this->get('oka_rest_request_validator.error_response.factory')->create($this->get('translator')->trans('download.dependency_failed', [], 'app'), 424, null, [], 424);
 		}
 		
 		if (true === $request->query->has('simulate')) {
@@ -63,18 +54,21 @@ class DownloadController extends AbstractController
 			return new JsonResponse(['error' => ['message' => $output ?? 'Bad URL.']], 400);
 		}
 		
-		$dispatcher->addListener(KernelEvents::TERMINATE, function(PostResponseEvent $event) use ($requestContent) {
+		$dispatcher->addListener(KernelEvents::TERMINATE, function(PostResponseEvent $event) use ($requestContent, $logger) {
 			$options = [];
 			
 			if (true === isset($requestContent['extractAudio'])) {
 				$options[] = '-x';
 				$options[] = sprintf('--audio-format=%s', $requestContent['audioFormat'] ?? 'mp3');
 			}
+			
 			if (true === isset($requestContent['redirectUrl'])) {
 				$options[] = sprintf('--redirect-url="%s"', $requestContent['redirectUrl']);
 			}
 			
-			shell_exec(sprintf('php %s/bin/console %s %s "%s" >> /dev/stdout 2>&1 &', $this->getParameter('kernel.project_dir'), DownloadCommand::getDefaultName(), implode(' ', $options), $requestContent['url']));
+			$logger->info(sprintf('URL downloading "%s" has starting.', $requestContent['url']), $requestContent);
+			
+			shell_exec(sprintf('php %s/bin/console %s %s %s &', $this->getParameter('kernel.project_dir'), DownloadCommand::getDefaultName(), implode(' ', $options), escapeshellarg($requestContent['url'])));
 		});
 		
 		return new JsonResponse(null, 204);
@@ -93,7 +87,7 @@ class DownloadController extends AbstractController
 	 */
 	public function list(Request $request, $version, $protocol, $format) {
 		if (!$resource = @opendir($this->getParameter('assets_dir'))) {
-			return $this->errorFactory->create($this->get('translator')->trans('download.unexpected_error', [], 'app'), 500, null, [], 500);
+			return $this->get('oka_rest_request_validator.error_response.factory')->create($this->get('translator')->trans('download.unexpected_error', [], 'app'), 500, null, [], 500);
 		}
 		
 		$files = [];
@@ -130,7 +124,7 @@ class DownloadController extends AbstractController
 		$path = sprintf('%s/%s', $this->getParameter('assets_dir'), $filename);
 		
 		if (false === file_exists($path)) {
-			return $this->errorFactory->create($this->get('translator')->trans('download.file.not_found', ['%filename%' => $filename], 'app'), 404, null, [], 404);
+			return $this->get('oka_rest_request_validator.error_response.factory')->create($this->get('translator')->trans('download.file.not_found', ['%filename%' => $filename], 'app'), 404, null, [], 404);
 		}
 		
 		if (true === $request->isMethod('HEAD')) {
@@ -163,18 +157,21 @@ class DownloadController extends AbstractController
 		$path = sprintf('%s/%s', $this->getParameter('assets_dir'), $filename);
 		
 		if (false === file_exists($path)) {
-			return $this->errorFactory->create($this->get('translator')->trans('download.file.not_found', ['%filename%' => $filename], 'app'), 404, null, [], 404);
+			return $this->get('oka_rest_request_validator.error_response.factory')->create($this->get('translator')->trans('download.file.not_found', ['%filename%' => $filename], 'app'), 404, null, [], 404);
 		}
 		
 		if (false === unlink($path)) {
-			return $this->errorFactory->create($this->get('translator')->trans('download.unexpected_error', [], 'app'), 400, null, [], 400);
+			return $this->get('oka_rest_request_validator.error_response.factory')->create($this->get('translator')->trans('download.unexpected_error', [], 'app'), 400, null, [], 400);
 		}
 		
 		return new JsonResponse(null, 204);
 	}
 	
 	public static function getSubscribedServices() {
-		return array_merge(parent::getSubscribedServices(), ['translator' => '?'.TranslatorInterface::class]);
+		return array_merge(parent::getSubscribedServices(), [
+				'translator' => '?'.TranslatorInterface::class,
+				'oka_rest_request_validator.error_response.factory' => '?'.ErrorResponseFactory::class
+		]);
 	}
 	
 	private static function itemConstraints() :Assert\Collection {

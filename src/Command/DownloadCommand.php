@@ -1,6 +1,7 @@
 <?php
 namespace App\Command;
 
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
@@ -19,10 +20,16 @@ class DownloadCommand extends Command
 	 */
 	protected $binDir;
 	
-	public function __construct($binDir) {
+	/**
+	 * @var LoggerInterface $logger
+	 */
+	protected $logger;
+	
+	public function __construct($binDir, LoggerInterface $logger) {
 		parent::__construct();
 		
 		$this->binDir = $binDir;
+		$this->logger = $logger;
 	}
 	
 	/**
@@ -82,6 +89,8 @@ EOF
 	 * @see \Symfony\Component\Console\Command\Command::execute()
 	 */
 	protected function execute(InputInterface $input, OutputInterface $output) {
+		$this->logger->info(sprintf('URL downloading "%s" has been started.', $input->getArgument('url')), $input->getOptions());
+		
 		$options = [];
 		$commands = ['chmod -R 0755 {}'];
 		$output = new StreamOutput(fopen('php://stdout', 'w'));
@@ -96,18 +105,19 @@ EOF
 		}
 		
 		$out = $status = null;
-		$command = sprintf('youtube-dl -f best --audio-quality 0 --restrict-filenames --yes-playlist %s --exec \'%s\' \'%s\' &', implode(' ', $options), implode(' && ', $commands), $input->getArgument('url'));
-		exec($command, $out, $status);
+		exec(sprintf('youtube-dl -f best --audio-quality 0 --restrict-filenames --yes-playlist %s --exec \'%s\' \'%s\' &', implode(' ', $options), implode(' && ', $commands), $input->getArgument('url')), $out, $status);
 		
-		if ((int) $status > 0 && null !== $input->getOption('redirect-url')) {
-			$input = new ArrayInput([
+		$this->logger->info(sprintf('URL downloading "%s" has been executed.', $input->getArgument('url')), $out);
+		
+		if (((int) $status) > 0 && null !== $input->getOption('redirect-url')) {
+			$command = $this->getApplication()->find(WebhookCommand::getDefaultName());
+			$command->run(new ArrayInput([
 					'--event-type' => 'DOWNLOAD.FAILED',
 					'--source-url' => $input->getArgument('url'),
 					'url' => $input->getOption('redirect-url')
-			]);
-			
-			$command = $this->getApplication()->find(WebhookCommand::getDefaultName());
-			$command->run($input, $output);
+			]), $output);
 		}
+		
+		$this->logger->info(sprintf('URL downloading "%s" has been terminated.', $input->getArgument('url')), $input->getOptions());
 	}
 }

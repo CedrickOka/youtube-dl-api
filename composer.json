@@ -1,18 +1,25 @@
 {
-	"name" : "veone/youtube-dl",
+	"name" : "coka/youtube-dl-api",
 	"type" : "project",
-	"license" : "proprietary",
+	"homepage" : "https://github.com/CedrickOka/youtube-dl-api",
+	"license" : "MIT",
+	"authors" : [{
+			"name" : "Cedrick Oka",
+			"email" : "okacedrick@gmail.com"
+		}
+	],
 	"require" : {
 		"php": "^7.1.3",
 		"ext-ctype": "*",
 		"ext-iconv": "*",
-		"coka/api-bundle": "^3.0",
+		"coka/rest-request-validator-bundle": "^1.1",
 		"guzzlehttp/guzzle": "^6.3",
-		"symfony/console": "4.2.*",
-		"symfony/dotenv": "4.2.*",
+		"symfony/console": "^4.2",
+		"symfony/dotenv": "^4.2",
 		"symfony/flex": "^1.1",
-		"symfony/framework-bundle": "4.2.*",
-		"symfony/yaml": "4.2.*"
+		"symfony/framework-bundle": "^4.2",
+		"symfony/monolog-bundle": "^3.4",
+		"symfony/yaml": "^4.2"
 	},
 	"config" : {
 		"preferred-install" : {
