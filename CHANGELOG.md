@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+#### 2.1.1 (2019-11-10)
+
+* Fixed bug in web hook command.
+
 #### 2.1.0 (2019-11-10)
 
 * Added documentation for REST API.

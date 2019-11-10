@@ -50,11 +50,11 @@ The <info>%command.name%</info> command permit of trigger a webhook :
 
   <info>php %command.full_name% --event-type="DOWNLOAD.SUCCESSFULLY" --source-url="http://www.exemple.com/index.php" "http://exemple.com/webhook/listen"</info>
 
-This interactive shell will ask you for at URL.
+This interactive shell will ask you for at filename.
 
 You can specify filename :
 
-  <info>php %command.full_name% --event-type="DOWNLOAD.SUCCESSFULLY" --source-url="http://www.exemple.com/index.php" --filename="/opt/data/youtube-dl/Jeudi_c_est_Koulibaly_Les_lecons_des_elections_municipales-1549652437.mp4" "http://exemple.com/webhook/listen"</info>
+  <info>php %command.full_name% --event-type="DOWNLOAD.SUCCESSFULLY" --source-url="http://www.exemple.com/index.php" --filename="Jeudi_c_est_Koulibaly_Les_lecons_des_elections_municipales-1549652437.mp4" "http://exemple.com/webhook/listen"</info>
 EOF
 				);
 	}
@@ -124,7 +124,7 @@ EOF
 		];
 		
 		if (null !== $input->getOption('filename')) {
-			$body['resource']['filename'] = $input->getOption('filename');
+			$body['resource']['filename'] = basename($input->getOption('filename'));
 		}
 		
 		try {
@@ -136,7 +136,7 @@ EOF
 					$e->getMessage(),
 					$e->getFile(),
 					$e->getLine()
-			), ['eventType' => $input->getOption('event-type'), 'eventVersion' => $input->getOption('event-version'), 'sourceUrl' => $input->getOption('source-url'), 'filename' => $input->getOption('filename'), 'url' => $input->getArgument('url')]);
+			), $body);
 		}
 	}
 }

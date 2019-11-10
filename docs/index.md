@@ -6,5 +6,5 @@
 
 ## Usage
 
-REST API documentaion are located [here](docs/download.md).
-Instant Download Notification documentaion are located [here](docs/notification.md).
+REST API documentaion are located [here](download.md).
+Instant Download Notification documentaion are located [here](notification.md).
