@@ -11,6 +11,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\StreamOutput;
 use Symfony\Component\Console\Question\Question;
 
+/**
+ *
+ * @author Cedrick Oka Baidai <okacedrick@gmail.com>
+ *
+ */
 class DownloadCommand extends Command
 {
 	protected static $defaultName = 'app:download';

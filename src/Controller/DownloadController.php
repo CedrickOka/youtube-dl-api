@@ -1,7 +1,7 @@
 <?php
 namespace App\Controller;
 
-use App\Command\DownloadCommand;
+use App\Message\Download;
 use Oka\RESTRequestValidatorBundle\Annotation\AccessControl;
 use Oka\RESTRequestValidatorBundle\Annotation\RequestContent;
 use Oka\RESTRequestValidatorBundle\Service\ErrorResponseFactory;
@@ -13,15 +13,13 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
-use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\HttpKernel\Event\PostResponseEvent;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  *
- * @author Cedrick Oka Baidai <baidai.cedric@veone.net>
+ * @author Cedrick Oka Baidai <okacedrick@gmail.com>
  *
  */
 class DownloadController extends AbstractController
@@ -51,25 +49,12 @@ class DownloadController extends AbstractController
 					return new Response($output, 200, ['Content-Type' => 'application/json']);
 				}
 			}
+			
 			return new JsonResponse(['error' => ['message' => $output ?? 'Bad URL.']], 400);
 		}
 		
-		$dispatcher->addListener(KernelEvents::TERMINATE, function(PostResponseEvent $event) use ($requestContent, $logger) {
-			$options = [];
-			
-			if (true === isset($requestContent['extractAudio'])) {
-				$options[] = '-x';
-				$options[] = sprintf('--audio-format=%s', $requestContent['audioFormat'] ?? 'mp3');
-			}
-			
-			if (true === isset($requestContent['redirectUrl'])) {
-				$options[] = sprintf('--redirect-url="%s"', $requestContent['redirectUrl']);
-			}
-			
-			$logger->info(sprintf('URL downloading "%s" has starting.', $requestContent['url']), $requestContent);
-			
-			shell_exec(sprintf('php %s/bin/console %s %s %s &', $this->getParameter('kernel.project_dir'), DownloadCommand::getDefaultName(), implode(' ', $options), escapeshellarg($requestContent['url'])));
-		});
+		/** @var \Symfony\Component\Messenger\MessageBusInterface $bus */
+		$this->get('message_bus')->dispatch(new Download($requestContent['url'], $requestContent));
 		
 		return new JsonResponse(null, 204);
 	}

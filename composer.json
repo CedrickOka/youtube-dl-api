@@ -18,6 +18,7 @@
 		"symfony/dotenv": "^4.2",
 		"symfony/flex": "^1.1",
 		"symfony/framework-bundle": "^4.2",
+		"symfony/messenger": "^4.2",
 		"symfony/monolog-bundle": "^3.4",
 		"symfony/yaml": "^4.2"
 	},
@@ -51,7 +52,7 @@
 	"extra" : {
 		"symfony" : {
 			"allow-contrib" : false,
-			"require" : "4.2.*"
+			"require" : "^4.2"
 		}
 	}
 }

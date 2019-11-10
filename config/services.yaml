@@ -17,7 +17,7 @@ services:
     # this creates a service per class whose id is the fully-qualified class name
     App\:
         resource: '../src/*'
-        exclude: '../src/{DependencyInjection,Entity,Migrations,Tests,Kernel.php}'
+        exclude: '../src/{DependencyInjection,Entity,Migrations,Tests,Transport,Kernel.php}'
 
     # controllers are imported separately to make sure services can be injected
     # as action arguments even if you don't extend any base controller class
@@ -30,3 +30,10 @@ services:
         bind:
             $binDir: '%kernel.project_dir%/bin' 
         tags: ['console.command']
+
+    App\Transport\SemaphoreTransportFactory:
+        tags: [messenger.transport_factory]
+
+    App\MessageHandler\DownloadHandler:
+        arguments: ['%kernel.project_dir%', '@logger']
+        tags: [messenger.message_handler]
