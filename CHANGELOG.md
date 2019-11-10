@@ -3,7 +3,8 @@ CHANGELOG
 
 #### 2.0.0 (2019-11-10)
 
-* Fixed bug.
+* Used messenger.
+* Added custom messenger transport semaphore.
 
 #### 1.1.1 (2019-02-21)
 
