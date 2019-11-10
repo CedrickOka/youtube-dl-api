@@ -161,10 +161,10 @@ class DownloadController extends AbstractController
 	
 	private static function itemConstraints() :Assert\Collection {
 		return new Assert\Collection([
-				'url' => new Assert\Required([new Assert\NotBlank(), new Assert\NotNull()]),
+				'url' => new Assert\Required([new Assert\Url()]),
+				'redirectUrl' => new Assert\Optional(new Assert\Url()),
 				'extractAudio' => new Assert\Optional(new Assert\Type(['type' => 'boolean'])),
-				'audioFormat' => new Assert\Optional(new Assert\Choice(['choices' => ['best', 'aac', 'flac', 'mp3', 'm4a', 'opus', 'vorbis', 'wav']])),
-				'redirectUrl' => new Assert\Optional(new Assert\Url())
+				'audioFormat' => new Assert\Optional(new Assert\Choice(['choices' => ['best', 'aac', 'flac', 'mp3', 'm4a', 'opus', 'vorbis', 'wav']]))
 		]);
 	}
 }

@@ -1,4 +1,16 @@
 {
+    "coka/cors-bundle": {
+        "version": "1.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "master",
+            "version": "1.0",
+            "ref": "d95bf28f73dae46873449853b463d9261401b091"
+        },
+        "files": [
+            "config/packages/oka_cors.yaml"
+        ]
+    },
     "coka/rest-request-validator-bundle": {
         "version": "1.1.4"
     },

@@ -38,7 +38,8 @@ class WebhookCommand extends Command
 	protected function configure() {
 		$this->setName(static::$defaultName)
 			 ->setDefinition([
-					new InputOption('event-type', null, InputOption::VALUE_REQUIRED, 'The webhook event type.'),
+			 		new InputOption('event-type', null, InputOption::VALUE_REQUIRED, 'The webhook event type.'),
+			 		new InputOption('event-version', null, InputOption::VALUE_REQUIRED, 'The webhook event version.', '1'),
 					new InputOption('source-url', 's', InputOption::VALUE_REQUIRED, 'The source URL.'),
 			 		new InputOption('filename', 'f', InputOption::VALUE_OPTIONAL, 'The filename path.'),
 			 		new InputArgument('url', InputArgument::REQUIRED, 'The notify URL.')
@@ -113,17 +114,21 @@ EOF
 	 * @see \Symfony\Component\Console\Command\Command::execute()
 	 */
 	protected function execute(InputInterface $input, OutputInterface $output) {
+		$body = [
+				'createdAt' => date('c'),
+				'eventType' => $input->getOption('event-type'),
+				'eventVersion' => $input->getOption('event-version'),
+				'resource' => [
+						'sourceUrl' => $input->getOption('source-url')
+				]
+		];
+		
+		if (null !== $input->getOption('filename')) {
+			$body['resource']['filename'] = $input->getOption('filename');
+		}
+		
 		try {
-			(new Client())->post($input->getArgument('url'), [
-					RequestOptions::JSON => [
-							'createdAt' => date('c'),
-							'eventType' => $input->getOption('event-type'),
-							'resource' => [
-									'sourceUrl' => $input->getOption('source-url'),
-									'filename' => basename($input->getOption('filename'))
-							]
-					]
-			]);
+			(new Client())->post($input->getArgument('url'), [RequestOptions::JSON => $body]);
 		} catch (\Exception $e) {
 			$this->logger->error(sprintf(
 					'%s: %s (uncaught exception) at %s line %s',
@@ -131,7 +136,7 @@ EOF
 					$e->getMessage(),
 					$e->getFile(),
 					$e->getLine()
-			), ['eventType' => $input->getOption('event-type'), 'sourceUrl' => $input->getOption('source-url'), 'filename' => $input->getOption('filename'), 'url' => $input->getArgument('url')]);
+			), ['eventType' => $input->getOption('event-type'), 'eventVersion' => $input->getOption('event-version'), 'sourceUrl' => $input->getOption('source-url'), 'filename' => $input->getOption('filename'), 'url' => $input->getArgument('url')]);
 		}
 	}
 }

@@ -12,6 +12,7 @@
 		"php": "^7.1.3",
 		"ext-ctype": "*",
 		"ext-iconv": "*",
+		"coka/cors-bundle": "^1.2",
 		"coka/rest-request-validator-bundle": "^1.1",
 		"guzzlehttp/guzzle": "^6.3",
 		"symfony/console": "^4.2",

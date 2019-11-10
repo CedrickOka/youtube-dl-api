@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+#### 2.1.0 (2019-11-10)
+
+* Added documentation for REST API.
+* Added documentation for Instant Download Notification.
+
 #### 2.0.0 (2019-11-10)
 
 * Used messenger.
