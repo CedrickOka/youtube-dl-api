@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+#### 2.2.0 (2019-11-14)
+
+* Allowed to specify the unix owner of downloaded files.
+
 #### 2.1.1 (2019-11-10)
 
 * Fixed bug in web hook command.

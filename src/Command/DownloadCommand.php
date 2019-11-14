@@ -47,6 +47,7 @@ class DownloadCommand extends Command
 			 		new InputOption('extract-audio', 'x', InputOption::VALUE_NONE, 'Convert video files to audio-only files.'),
 			 		new InputOption('audio-format', 'a', InputOption::VALUE_OPTIONAL, 'Specify audio format: "best", "aac", "flac", "mp3", "m4a", "opus", "vorbis", or "wav"; "best" by default; No effect without -x.', 'mp3'),
 			 		new InputOption('redirect-url', 'r', InputOption::VALUE_OPTIONAL, 'Trigger webhooks to inform download state.'),
+			 		new InputOption('unix-owner', 'o', InputOption::VALUE_OPTIONAL, 'The unix owner of the file to download.', null),
 			 		new InputArgument('url', InputArgument::REQUIRED, 'The download URL.')
 			 ])
 			 ->setDescription('Command permit of a download URL')
@@ -64,6 +65,10 @@ You can specify extract-audio option for convert video files to audio-only files
 You can specify redirect url :
 
   <info>php %command.full_name% --redirect-url=http://www.exemple.com/index.php https://www.youtube.com/watch?v=2ESAi2vq-80</info>
+
+You can specify redirect file unix owner :
+
+  <info>php %command.full_name% --unix-owner=www-data https://www.youtube.com/watch?v=2ESAi2vq-80</info>
 EOF
 				);
 	}
@@ -94,25 +99,30 @@ EOF
 	 * @see \Symfony\Component\Console\Command\Command::execute()
 	 */
 	protected function execute(InputInterface $input, OutputInterface $output) {
-		$this->logger->info(sprintf('URL downloading "%s" has been started.', $input->getArgument('url')), $input->getOptions());
+		$this->logger->info(sprintf('The download of the URL "%s" has started.', $input->getArgument('url')), $input->getOptions());
 		
 		$options = [];
 		$commands = ['chmod -R 0755 {}'];
-		$output = new StreamOutput(fopen('php://stdout', 'w'));
+		
+		if (null !== $input->getOption('redirect-url')) {
+			$commands[] = sprintf('php %s/console %s --event-type="DOWNLOAD.SUCCESSFULLY" --source-url="%s" --filename="{}" "%s"', $this->binDir, WebhookCommand::getDefaultName(), $input->getArgument('url'), $input->getOption('redirect-url'));
+		}
+		
+		if ($input->getOption('unix-owner')) {
+			$commands[] = sprintf('chown -R %1$s:%1$s {}', $input->getOption('unix-owner'));
+		}
 		
 		if (true === $input->getOption('extract-audio')) {
 			$options[] = '-x';
 			$options[] = sprintf('--audio-format %s', $input->getOption('audio-format'));
 		}
 		
-		if (null !== $input->getOption('redirect-url')) {
-			$commands[] = sprintf('php %s/console %s --event-type="DOWNLOAD.SUCCESSFULLY" --source-url="%s" --filename="{}" "%s"', $this->binDir, WebhookCommand::getDefaultName(), $input->getArgument('url'), $input->getOption('redirect-url'));
-		}
+		$options[] = sprintf('--exec \'%s\'', implode(' && ', $commands));
 		
 		$out = $status = null;
-		exec(sprintf('youtube-dl -f best --audio-quality 0 --restrict-filenames --yes-playlist %s --exec \'%s\' \'%s\' &', implode(' ', $options), implode(' && ', $commands), $input->getArgument('url')), $out, $status);
+		exec(sprintf('youtube-dl -f best --audio-quality 0 --restrict-filenames --yes-playlist %s \'%s\' &', implode(' ', $options), $input->getArgument('url')), $out, $status);
 		
-		$this->logger->info(sprintf('URL downloading "%s" has been executed.', $input->getArgument('url')), $out);
+		$this->logger->info(sprintf('The download of the URL "%s" has been executed by the "youtube-dl" programm with status [%s].', $input->getArgument('url'), $status), $out);
 		
 		if (((int) $status) > 0 && null !== $input->getOption('redirect-url')) {
 			$command = $this->getApplication()->find(WebhookCommand::getDefaultName());
@@ -120,9 +130,9 @@ EOF
 					'--event-type' => 'DOWNLOAD.FAILED',
 					'--source-url' => $input->getArgument('url'),
 					'url' => $input->getOption('redirect-url')
-			]), $output);
+			]), new StreamOutput(fopen('php://stdout', 'w')));
 		}
 		
-		$this->logger->info(sprintf('URL downloading "%s" has been terminated.', $input->getArgument('url')), $input->getOptions());
+		$this->logger->info(sprintf('The download of the URL "%s" is completed.', $input->getArgument('url')), $input->getOptions());
 	}
 }

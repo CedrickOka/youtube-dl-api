@@ -19,12 +19,18 @@ class DownloadHandler implements MessageHandlerInterface
 	private $projectDir;
 	
 	/**
+	 * @var string $unixOwner
+	 */
+	private $unixOwner;
+	
+	/**
 	 * @var LoggerInterface $logger
 	 */
 	private $logger;
 	
-	public function __construct(string $projectDir, LoggerInterface $logger) {
+	public function __construct(string $projectDir, string $unixOwner = null, LoggerInterface $logger) {
 		$this->projectDir = $projectDir;
+		$this->unixOwner = $unixOwner;
 		$this->logger = $logger;
 	}
 	
@@ -38,7 +44,11 @@ class DownloadHandler implements MessageHandlerInterface
 		}
 		
 		if (true === isset($requestContent['redirectUrl'])) {
-			$options[] = sprintf('--redirect-url="%s"', $requestContent['redirectUrl']);
+			$options[] = sprintf('--redirect-url=%s', escapeshellarg($requestContent['redirectUrl']));
+		}
+		
+		if ($this->unixOwner) {
+			$options[] = sprintf('--unix-owner=%s', $this->unixOwner);
 		}
 		
 		$this->logger->info(sprintf('URL downloading "%s" has starting.', $message->getUrl()), $requestContent);

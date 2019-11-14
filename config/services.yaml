@@ -6,6 +6,7 @@
 parameters:
     locale: '%env(APP_LOCALE)%'
     assets_dir: '%env(resolve:ASSETS_DIR)%'
+    env(FILE_UNIX_OWNER): ~
 
 services:
     # default configuration for services in *this* file
@@ -35,5 +36,5 @@ services:
         tags: [messenger.transport_factory]
 
     App\MessageHandler\DownloadHandler:
-        arguments: ['%kernel.project_dir%', '@logger']
+        arguments: ['%kernel.project_dir%', '%env(FILE_UNIX_OWNER)%', '@logger']
         tags: [messenger.message_handler]

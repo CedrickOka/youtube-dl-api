@@ -129,6 +129,8 @@ EOF
 		
 		try {
 			(new Client())->post($input->getArgument('url'), [RequestOptions::JSON => $body]);
+			
+			$this->logger->info(sprintf('Instant Download Notification has been sended on URL "%s".', $input->getArgument('url')), $body);
 		} catch (\Exception $e) {
 			$this->logger->error(sprintf(
 					'%s: %s (uncaught exception) at %s line %s',
