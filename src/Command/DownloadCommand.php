@@ -120,7 +120,7 @@ EOF
 		$options[] = sprintf('--exec \'%s\'', implode(' && ', $commands));
 		
 		$out = $status = null;
-		exec(sprintf('youtube-dl -f best --audio-quality 0 --restrict-filenames --yes-playlist %s \'%s\' &', implode(' ', $options), $input->getArgument('url')), $out, $status);
+		exec(sprintf('youtube-dl -f best --audio-quality 0 --restrict-filenames --yes-playlist %s \'%s\'', implode(' ', $options), $input->getArgument('url')), $out, $status);
 		
 		$this->logger->info(sprintf('The download of the URL "%s" has been executed by the "youtube-dl" programm with status [%s].', $input->getArgument('url'), $status), $out);
 		
