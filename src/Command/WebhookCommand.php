@@ -119,12 +119,16 @@ EOF
 				'eventType' => $input->getOption('event-type'),
 				'eventVersion' => $input->getOption('event-version'),
 				'resource' => [
-						'sourceUrl' => $input->getOption('source-url')
+					'sourceUrl' => $input->getOption('source-url')
 				]
 		];
 		
 		if (null !== $input->getOption('filename')) {
 			$body['resource']['filename'] = basename($input->getOption('filename'));
+			
+			if (true === file_exists($input->getOption('filename'))) {
+				$body['resource']['size'] = (int) @filesize($input->getOption('filename'));
+			}
 		}
 		
 		try {

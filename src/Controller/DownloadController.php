@@ -56,7 +56,7 @@ class DownloadController extends AbstractController
 		/** @var \Symfony\Component\Messenger\MessageBusInterface $bus */
 		$this->get('message_bus')->dispatch(new Download($requestContent['url'], $requestContent));
 		
-		return new JsonResponse(null, 204);
+		return new JsonResponse(null, 200);
 	}
 	
 	/**

@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+#### 2.2.1 (2019-11-14)
+
+* Removed detach process options in cli command definition.
+
 #### 2.2.0 (2019-11-14)
 
 * Allowed to specify the unix owner of downloaded files.
