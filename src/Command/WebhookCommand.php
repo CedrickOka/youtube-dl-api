@@ -137,12 +137,14 @@ EOF
 			$this->logger->info(sprintf('Instant Download Notification has been sended on URL "%s".', $input->getArgument('url')), $body);
 		} catch (\Exception $e) {
 			$this->logger->error(sprintf(
-					'%s: %s (uncaught exception) at %s line %s',
-					get_class($e),
-					$e->getMessage(),
-					$e->getFile(),
-					$e->getLine()
+				'%s: %s (uncaught exception) at %s line %s',
+				get_class($e),
+				$e->getMessage(),
+				$e->getFile(),
+				$e->getLine()
 			), $body);
 		}
+		
+		return 0;
 	}
 }

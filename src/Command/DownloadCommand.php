@@ -134,5 +134,7 @@ EOF
 		}
 		
 		$this->logger->info(sprintf('The download of the URL "%s" is completed.', $input->getArgument('url')), $input->getOptions());
+		
+		return 0;
 	}
 }

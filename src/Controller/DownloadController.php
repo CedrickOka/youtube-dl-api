@@ -145,8 +145,8 @@ class DownloadController extends AbstractController
 			return $this->get('oka_rest_request_validator.error_response.factory')->create($this->get('translator')->trans('download.file.not_found', ['%filename%' => $filename], 'app'), 404, null, [], 404);
 		}
 		
-		if (false === unlink($path)) {
-			return $this->get('oka_rest_request_validator.error_response.factory')->create($this->get('translator')->trans('download.unexpected_error', [], 'app'), 400, null, [], 400);
+		if (false === @unlink($path)) {
+		    return $this->get('oka_rest_request_validator.error_response.factory')->create($this->get('translator')->trans('download.unexpected_error', [], 'app'), 500, null, [], 500);
 		}
 		
 		return new JsonResponse(null, 204);
