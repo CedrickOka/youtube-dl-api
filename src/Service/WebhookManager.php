@@ -42,7 +42,7 @@ class WebhookManager
 	    
 	    try {
 	        $this->httpClient->post($url, [RequestOptions::JSON => $body]);
-	        $this->logger->info('Instant Download Notification has been sended on URL "{url}".', $url);
+	        $this->logger->info('Instant Download Notification has been sended on URL "{url}".', ['url' => $url, 'body' => $body]);
 	    } catch (\Exception $e) {
 	       $this->logger->error(sprintf(
                 '%s: %s (uncaught exception) at %s line %s',
@@ -50,7 +50,7 @@ class WebhookManager
 	            $e->getMessage(),
 	            $e->getFile(),
 	            $e->getLine()
-	       ), $body);
+	       ), ['url' => $url, 'body' => $body]);
 	    }
 	}
 }
