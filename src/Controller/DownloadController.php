@@ -135,7 +135,10 @@ class DownloadController extends AbstractController
 		if (true === $request->isMethod('HEAD')) {
 			$finfo = finfo_open(FILEINFO_MIME_TYPE);
 			
-			return new Response(null, 204, ['Content-Type' => filesize($path), 'Content-Length' => finfo_file($finfo, $path)]);
+			return new Response(null, 204, [
+			    'Content-Type' => $finfo ? finfo_file($finfo, $path) : 'application/octet-stream', 
+			    'Content-Length' => (int) @filesize($path)
+			]);
 		}
 		
 		$response = new BinaryFileResponse($path, 200, [], ResponseHeaderBag::DISPOSITION_ATTACHMENT);

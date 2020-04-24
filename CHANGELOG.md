@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+#### 3.0.1 (2020-04-24)
+
+* Fixed bug.
+
 #### 3.0.0 (2020-04-23)
 
 * Installed library `coka/semaphore-messenger`.
