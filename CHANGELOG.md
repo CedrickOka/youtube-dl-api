@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+#### 3.1.0 (2020-04-24)
+
+* Improve DownloaderManager service.
+
 #### 3.0.1 (2020-04-24)
 
 * Fixed bug.

@@ -37,11 +37,11 @@ class DownloadManager
 		$commands = ['chmod -R 0755 {}'];
 		$escapedUrl = escapeshellarg($url);
 		
-		if (true === isset($options['eventUrl'])) {
-		    $commands[] = sprintf('php %s/console %s --eventType=DOWNLOAD.SUCCESSFULLY --sourceUrl=%s --filename="{}" %s', $this->binDir, WebhookCommand::getDefaultName(), $escapedUrl, escapeshellarg($options['eventUrl']));
-		}
 		if (true === isset($options['unixOwner']) || null !== $this->unixOwner) {
 		    $commands[] = sprintf('chown -R %1$s:%1$s {}', $options['unixOwner'] ?? $this->unixOwner);
+		}
+		if (true === isset($options['eventUrl'])) {
+		    $commands[] = sprintf('php %s/console %s --eventType=DOWNLOAD.SUCCESSFULLY --sourceUrl=%s --filename="{}" %s', $this->binDir, WebhookCommand::getDefaultName(), $escapedUrl, escapeshellarg($options['eventUrl']));
 		}
 		
 		if (true === isset($options['proxyUrl'])) {
