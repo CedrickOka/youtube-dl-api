@@ -1,11 +1,16 @@
 framework:
     messenger:
+        serializer:
+            default_serializer: messenger.transport.symfony_serializer
+            symfony_serializer:
+                format: json
+                context: {}
         transports:
-            # Uncomment the following line to enable a transport named "amqp"
-            # amqp: '%env(MESSENGER_TRANSPORT_DSN)%'
-            async: '%env(resolve:MESSENGER_TRANSPORT_DSN)%'
+            download:
+                dsn: '%env(resolve:MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    path: '%kernel.project_dir%/.env'
+                    project: D
 
         routing:
-            # Route your messages to the transports
-            # 'App\Message\YourMessage': amqp
-            'App\Message\Download': async
+            'App\Message\Download': download

@@ -8,26 +8,22 @@ namespace App\Message;
  */
 class Download
 {
-	/**
-	 * @var string $url
-	 */
 	private $url;
-	
-	/**
-	 * @var array $requestContent
-	 */
 	private $requestContent;
 	
-	public function __construct(string $url, array $requestContent = []) {
+	public function __construct(string $url, array $requestContent = [])
+	{
 		$this->url = $url;
 		$this->requestContent = $requestContent;
 	}
 	
-	public function getUrl() :string {
+	public function getUrl() :string
+	{
 		return $this->url;
 	}
 	
-	public function getRequestContent() :array {
+	public function getRequestContent() :array
+	{
 		return $this->requestContent;
 	}
 }

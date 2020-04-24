@@ -1,0 +1,10 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: 'Youtube-dl API'
+            description: 'Youtube-dl API is an online video capture utility that supports Youtube but also many other platforms.'
+            version: 1.0.0
+    areas: # to filter documented areas
+        path_patterns:
+            - ^/(?!/doc$) # Accepts routes under /api except /api/doc
+            - ^/v[0-9]+/rest/

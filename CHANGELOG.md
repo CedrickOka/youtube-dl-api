@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+#### 3.0.0 (2020-04-23)
+
+* Installed library `coka/semaphore-messenger`.
+
 #### 2.2.1 (2019-11-14)
 
 * Removed detach process options in cli command definition.

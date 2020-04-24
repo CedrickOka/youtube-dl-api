@@ -24,16 +24,16 @@ Code | Reason
 Name |  In  | Type | Description
 ---- | ---- | ---- | -----------
 url | body | string | The URL to be downloaded.
+eventUrl (Optional) | body | string | Specify the webhook notification URL.
 extractAudio (Optional) | body | boolean | Convert video files to audio-only files (requires ffmpeg or avconv and ffprobe or avprobe)The description of the download.
 audioFormat (Optional) | body | enum | Specify audio format: "best", "aac", "flac", "mp3", "m4a", "opus", "vorbis", or "wav"; "best" by default; No effect without `extractAudio`.
-redirectUrl (Optional) | body | string | Specify the webhook notification URL.
 Accept (Optional) | header | string | Set this header to application/json, application/xml, or text/xml.
 Content-Type | header | string | Sets the MIME type for the request, set this header to application/json.
 
 ### **Request Example With Success**
 
 ```
-curl -i $baseURL/v1/rest/downloads -X POST -H 'Accept: application/json' -H 'Content-Type: application/json' -d '{"url": "https://www.youtube.com/watch?v=rJ2xkbLtrM8", "redirectUrl": "http://www.exemple.com/notifications"}'
+curl -i $baseURL/v1/rest/downloads -X POST -H 'Accept: application/json' -H 'Content-Type: application/json' -d '{"url": "https://www.youtube.com/watch?v=rJ2xkbLtrM8", "eventUrl": "http://www.exemple.com/notifications"}'
 ```
 
 ### **Request Example With Success**
@@ -53,7 +53,7 @@ Content-Type: application/json
 ### **Request Example With Error**
 
 ```
-curl -i $baseURL/v1/rest/downloads -X POST -H 'Accept: application/json' -H 'Content-Type: application/json' -d '{"url": "https:www.youtube.com/watch?v=rJ2xkbLtrM8", "redirectUrl": "http://www.exemple.com/notifications"}'
+curl -i $baseURL/v1/rest/downloads -X POST -H 'Accept: application/json' -H 'Content-Type: application/json' -d '{"url": "https:www.youtube.com/watch?v=rJ2xkbLtrM8", "eventUrl": "http://www.exemple.com/notifications"}'
 ```
 
 ### **Response Example With Error**
@@ -82,7 +82,7 @@ Content-Type: application/json
             "code": 400,
             "propertyPath": "[url]",
             "extras": {
-                "invalidValue": "https:"
+                "invalidValue": "https:www.youtube.com/watch?v=rJ2xkbLtrM8"
             }
         }
     ]
@@ -117,7 +117,7 @@ files | body | array | A list of download object.
 ### **Request Example With Success**
 
 ```
-curl -i $baseURL/v1/rest/downloads -X GET -H "Accept: application/json"
+curl -i $baseURL/v1/rest/downloads -X GET -H 'Accept: application/json'
 ```
 
 ### **Response Example With Success**

@@ -1,9 +1,7 @@
 <?php
 namespace App\Command;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\RequestOptions;
-use Psr\Log\LoggerInterface;
+use App\Service\WebhookManager;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -20,41 +18,40 @@ class WebhookCommand extends Command
 {
 	protected static $defaultName = 'app:webhook';
 	
-	/**
-	 * @var LoggerInterface $logger
-	 */
-	protected $logger;
+	protected $webhookManager;
 	
-	public function __construct(LoggerInterface $logger) {
+	public function __construct(WebhookManager $webhookManager)
+	{
 		parent::__construct();
 		
-		$this->logger = $logger;
+		$this->webhookManager = $webhookManager;
 	}
 	
 	/**
 	 * {@inheritDoc}
 	 * @see \Symfony\Component\Console\Command\Command::configure()
 	 */
-	protected function configure() {
+	protected function configure()
+	{
 		$this->setName(static::$defaultName)
 			 ->setDefinition([
-			 		new InputOption('event-type', null, InputOption::VALUE_REQUIRED, 'The webhook event type.'),
-			 		new InputOption('event-version', null, InputOption::VALUE_REQUIRED, 'The webhook event version.', '1'),
-					new InputOption('source-url', 's', InputOption::VALUE_REQUIRED, 'The source URL.'),
-			 		new InputOption('filename', 'f', InputOption::VALUE_OPTIONAL, 'The filename path.'),
-			 		new InputArgument('url', InputArgument::REQUIRED, 'The notify URL.')
+		 		new InputOption('eventType', null, InputOption::VALUE_REQUIRED, 'The webhook event type.'),
+		 		new InputOption('eventVersion', null, InputOption::VALUE_REQUIRED, 'The webhook event version.', '1'),
+				new InputOption('sourceUrl', 's', InputOption::VALUE_REQUIRED, 'The source URL.'),
+		 		new InputOption('filename', 'f', InputOption::VALUE_OPTIONAL, 'The filename path.'),
+		 		new InputArgument('url', InputArgument::REQUIRED, 'The notify URL.')
 			 ])
 			 ->setDescription('Command permit of trigger a webhook')
 			 ->setHelp(<<<EOF
 The <info>%command.name%</info> command permit of trigger a webhook :
 
-  <info>php %command.full_name% --event-type="DOWNLOAD.SUCCESSFULLY" --source-url="http://www.exemple.com/index.php" "http://exemple.com/webhook/listen"</info>
+  <info>php %command.full_name% --eventType="DOWNLOAD.SUCCESSFULLY" --sourceUrl="http://www.exemple.com/index.php" "http://exemple.com/webhook/listen"</info>
 
 This interactive shell will ask you for at filename.
 
 You can specify filename :
 
-  <info>php %command.full_name% --event-type="DOWNLOAD.SUCCESSFULLY" --source-url="http://www.exemple.com/index.php" --filename="Jeudi_c_est_Koulibaly_Les_lecons_des_elections_municipales-1549652437.mp4" "http://exemple.com/webhook/listen"</info>
+  <info>php %command.full_name% --eventType="DOWNLOAD.SUCCESSFULLY" --sourceUrl="http://www.exemple.com/index.php" --filename="Jeudi_c_est_Koulibaly_Les_lecons_des_elections_municipales-1549652437.mp4" "http://exemple.com/webhook/listen"</info>
 EOF
 				);
 	}
@@ -63,7 +60,8 @@ EOF
 	 * {@inheritDoc}
 	 * @see \Symfony\Component\Console\Command\Command::interact()
 	 */
-	protected function interact(InputInterface $input, OutputInterface $output) {
+	protected function interact(InputInterface $input, OutputInterface $output)
+	{
 		/** @var \Symfony\Component\Console\Helper\QuestionHelper $questionHelper */
 		$questionHelper = $this->getHelper('question');
 		$questions = [];
@@ -81,7 +79,7 @@ EOF
 			$input->setArgument('url', $answer);
 		}
 		
-		if (!$input->getOption('event-type')) {
+		if (!$input->getOption('eventType')) {
 			$question = new Question('Please choose a event type:');
 			$question->setValidator(function($process){
 				if (true === empty($process)) {
@@ -89,10 +87,10 @@ EOF
 				}
 				return $process;
 			});
-			$questions['event-type'] = $question;
+			$questions['eventType'] = $question;
 		}
 		
-		if (!$input->getOption('source-url')) {
+		if (!$input->getOption('sourceUrl')) {
 			$question = new Question('Please choose a source url:');
 			$question->setValidator(function($process){
 				if (true === empty($process)) {
@@ -100,7 +98,7 @@ EOF
 				}
 				return $process;
 			});
-			$questions['source-url'] = $question;
+			$questions['sourceUrl'] = $question;
 		}
 		
 		foreach ($questions as $key => $question) {
@@ -113,37 +111,15 @@ EOF
 	 * {@inheritDoc}
 	 * @see \Symfony\Component\Console\Command\Command::execute()
 	 */
-	protected function execute(InputInterface $input, OutputInterface $output) {
-		$body = [
-				'createdAt' => date('c'),
-				'eventType' => $input->getOption('event-type'),
-				'eventVersion' => $input->getOption('event-version'),
-				'resource' => [
-					'sourceUrl' => $input->getOption('source-url')
-				]
-		];
-		
-		if (null !== $input->getOption('filename')) {
-			$body['resource']['filename'] = basename($input->getOption('filename'));
-			
-			if (true === file_exists($input->getOption('filename'))) {
-				$body['resource']['size'] = (int) @filesize($input->getOption('filename'));
-			}
-		}
-		
-		try {
-			(new Client())->post($input->getArgument('url'), [RequestOptions::JSON => $body]);
-			
-			$this->logger->info(sprintf('Instant Download Notification has been sended on URL "%s".', $input->getArgument('url')), $body);
-		} catch (\Exception $e) {
-			$this->logger->error(sprintf(
-				'%s: %s (uncaught exception) at %s line %s',
-				get_class($e),
-				$e->getMessage(),
-				$e->getFile(),
-				$e->getLine()
-			), $body);
-		}
+	protected function execute(InputInterface $input, OutputInterface $output)
+	{
+	    $this->webhookManager->send(
+	        $input->getArgument('url'), 
+	        $input->getOption('eventType'), 
+	        $input->getOption('eventVersion'), 
+	        $input->getOption('sourceUrl'), 
+	        $input->getOption('filename')
+	    );
 		
 		return 0;
 	}

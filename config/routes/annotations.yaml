@@ -3,3 +3,7 @@ controllers:
     type: annotation
     prefix: /{version}/{protocol}
     defaults: { version: v1, protocol: rest }
+
+kernel:
+    resource: ../../src/Kernel.php
+    type: annotation
