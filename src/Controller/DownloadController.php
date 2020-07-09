@@ -142,10 +142,7 @@ class DownloadController extends AbstractController
 		}
 		
 		$response = new BinaryFileResponse($path, 200, [], ResponseHeaderBag::DISPOSITION_ATTACHMENT);
-		
-		if (true === $request->query->has('deleteFileAfterSend')) {
-			$response->deleteFileAfterSend(true);
-		}
+		$response->deleteFileAfterSend($request->query->has('deleteFileAfterSend'));
 		
 		return $response;
 	}
