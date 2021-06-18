@@ -1,4 +1,4 @@
-ARG VERSION
+ARG VERSION=7.4
 
 FROM composer:2.0 as composer
 
