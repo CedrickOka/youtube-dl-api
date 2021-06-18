@@ -1,0 +1,12 @@
+[program:messenger]
+command=php /app/bin/console messenger:consume download -vvv --time-limit=3600
+user=www-data
+numprocs=${SUPERVISOR_NUMBER_PROCESSES}
+startsecs=30
+startretries=5
+autostart=true
+autorestart=true
+process_name=%(program_name)s_%(process_num)02d
+stdout_logfile=/dev/fd/1
+stdout_logfile_maxbytes=0
+redirect_stderr=true

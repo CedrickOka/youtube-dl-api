@@ -1,0 +1,11 @@
+includes:
+  - phpstan.neon.dist
+
+parameters:
+    excludes_analyse:
+      - tests/bootstrap.php
+
+    symfony:
+        container_xml_path: var/cache/test/srcApp_KernelTestDebugContainer.xml
+        console_application_loader: phpstan/console-loader.php
+        constant_hassers: false

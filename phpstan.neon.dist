@@ -1,0 +1,8 @@
+parameters:
+    level: 8
+
+    symfony:
+        console_application_loader: phpstan/console-loader.php
+
+    doctrine:
+        objectManagerLoader: phpstan/doctrine-orm-bootstrap.php

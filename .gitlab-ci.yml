@@ -1,0 +1,150 @@
+.build-template: &build-template
+    stage: build
+    script:
+      - docker build --build-arg VERSION=$BUILD_VERSION --target $BUILD_TARGET -t $CI_REGISTRY_IMAGE:$BUILD_TARGET -f docker/Dockerfile .
+    after_script:
+      # Save the image as an artifact
+      - mkdir -p build/$CI_REGISTRY_IMAGE
+      - docker save $CI_REGISTRY_IMAGE:$BUILD_TARGET -o build/$CI_REGISTRY_IMAGE/$BUILD_TARGET.tar
+    artifacts:
+        name: $CI_JOB_NAME-${CI_COMMIT_SHA:0:8}
+        expire_in: 1 day
+        paths:
+          - build/$CI_REGISTRY_IMAGE
+
+.registry-update-template: &registry-update-template
+    stage: registry-update
+    before_script:
+      # Load image from the build stage
+      - docker load -i build/$CI_REGISTRY_IMAGE/prod.tar
+      - echo "$CI_REGISTRY_PASSWORD" | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+    dependencies:
+      - build-prod
+
+# Select image from https://hub.docker.com/_/php/
+image: docker:latest
+
+services:
+  - docker:dind
+
+stages:
+  - analysis
+  - build
+  - test
+  - registry-update
+  - clean
+
+variables:
+    PHP_VERSION: "7.4"
+
+before_script:
+  # Export build version
+  - source .env && export BUILD_VERSION=$PHP_VERSION
+
+analysis-dockerfile:
+    stage: analysis
+    image: hadolint/hadolint:latest-alpine
+    script:
+      - hadolint docker/Dockerfile
+
+build-test:
+    <<: *build-template
+    variables:
+        BUILD_TARGET: test
+
+build-prod:
+    <<: *build-template
+    variables:
+        BUILD_TARGET: prod
+    only:
+      - master
+      - tags
+
+test:
+    variables:
+        NETWORK_NAME: $CI_PROJECT_PATH_SLUG-${CI_COMMIT_SHA:0:8}
+    stage: test
+    before_script:
+      # Load php image from the build stage
+      - docker load -i build/$CI_REGISTRY_IMAGE/test.tar
+#      - docker network create $NETWORK_NAME
+#      - docker run -e MYSQL_ROOT_PASSWORD=root --rm -d --network=$NETWORK_NAME --net-alias=mysql --expose=3306 --name=mysql mysql:5.7
+    script:
+      # Validate composer.json and composer.lock & Coding standard
+#      - docker run -e SYMFONY_DEPRECATIONS_HELPER=weak --rm $CI_REGISTRY_IMAGE:test sh -c 'composer validate && composer php-cs-fixer && composer phpstan'
+      - docker run -e SYMFONY_DEPRECATIONS_HELPER=weak --rm $CI_REGISTRY_IMAGE:test sh -c 'composer validate && composer php-cs-fixer'
+
+       # Test App
+      - docker run -e SYMFONY_DEPRECATIONS_HELPER=weak --rm --network=$NETWORK_NAME $CI_REGISTRY_IMAGE:test sh -c 'php ./vendor/bin/phpunit -c phpunit.xml.dist --testdox --coverage-text --colors=never tests/'
+#      - |
+#        docker run \
+#        -e SYMFONY_DEPRECATIONS_HELPER=weak \
+#        -e DATABASE_URL=mysql://root:root@mysql:3306/collector?serverVersion=5.7 \
+#        --rm \
+#        --network=$NETWORK_NAME \
+#        $CI_REGISTRY_IMAGE:test \
+#        sh -c 'wait-for -t 60 mysql:3306 -- \
+#                php /app/bin/console doctrine:database:create --if-not-exists && \
+#                php /app/bin/console doctrine:schema:update --force && \
+#                php ./vendor/bin/phpunit -c phpunit.xml.dist --testdox --coverage-text --colors=never tests/'
+#    after_script:
+#      - docker container stop mysql
+#      - docker network rm $NETWORK_NAME
+    coverage: '/^\s*Lines:\s*\d+.\d+\%/'
+    artifacts:
+        paths:
+          - var/log/
+        expire_in: '30 mins'
+        when: on_failure
+    dependencies:
+      - build-test
+
+registry-update-latest:
+    <<: *registry-update-template
+    script:
+      # Tag the image
+      - docker tag $CI_REGISTRY_IMAGE:prod $CI_REGISTRY_IMAGE
+
+      # Push the image
+      - docker push $CI_REGISTRY_IMAGE
+    only:
+      - master
+
+registry-update-release:
+    <<: *registry-update-template
+    script:
+      # Tag the image
+      - docker tag $CI_REGISTRY_IMAGE:prod $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
+
+      # Push the image
+      - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
+    only:
+      - tags
+
+clean:
+    stage: clean
+    script:
+      - docker container prune -f
+      - docker network prune -f
+      - docker volume prune -f
+      - docker image prune -f
+    when: always
+    allow_failure: true
+
+clean-test:
+    stage: clean
+    script:
+      - docker rmi $CI_REGISTRY_IMAGE:test
+    allow_failure: true
+    dependencies:
+      - build-test
+
+clean-prod:
+    stage: clean
+    script:
+      - docker rmi $CI_REGISTRY_IMAGE:prod
+    allow_failure: true
+    dependencies:
+      - build-prod
+    only:
+      - tags
