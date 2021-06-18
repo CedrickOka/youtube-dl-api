@@ -19,6 +19,7 @@
 		"guzzlehttp/guzzle": "^6.3",
 		"liip/monitor-bundle": "^2.16",
 		"nelmio/api-doc-bundle": "^3.6",
+		"symfony/asset": "4.4.*",
 		"symfony/console": "4.4.*",
 		"symfony/dotenv": "4.4.*",
 		"symfony/flex": "^1.1",
