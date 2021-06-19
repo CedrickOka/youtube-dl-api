@@ -5,14 +5,14 @@ printenv | sed 's/^\([^=]*\)\=\(.*\)$/\1\="\2"/g' | sed 's/^\(_\)\=\(.*\)$//g' >
 
 if [ "${APP_ENV}" != "test" ]; then
 	## Decomments here if database configuration is necessary
-	#php /app/bin/console doctrine:database:create -e --if-not-exists && \
-	#php /app/bin/console doctrine:schema:update -e --force && \
+	#php /app/bin/console doctrine:database:create --if-not-exists && \
+	#php /app/bin/console doctrine:schema:update --force && \
 	
 	## Install the bundle assets
-	php /app/bin/console assets:install public -e --symlink --relative && \
+	php /app/bin/console assets:install public --symlink --relative && \
 	
 	## Clear env cache
-	php /app/bin/console cache:clear -e --no-debug && \
+	php /app/bin/console cache:clear --no-debug && \
 	
 	## Configure php-fpm pool conf
 	#if [ ! -z $(grep "PM_MAX_CHILDREN" "/usr/local/etc/php-fpm.d/z-overrides.conf.template") ]; then 

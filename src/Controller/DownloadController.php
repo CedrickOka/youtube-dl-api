@@ -53,7 +53,7 @@ class DownloadController extends AbstractController
                 $output = trim($output);
 
                 if (!preg_match('#^(.*)ERROR:(.*)$#i', $output)) {
-                    return new Response($output, 200, ['Content-Type' => 'application/json']);
+                    return new JsonResponse($output, 200, [], true);
                 }
             }
 
