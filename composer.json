@@ -16,9 +16,11 @@
 		"coka/cors-bundle": "^1.2",
 		"coka/input-handler-bundle": "^1.3",
 		"coka/semaphore-messenger": "^1.0",
+		"doctrine/annotations": "^1.0",
 		"guzzlehttp/guzzle": "^6.3",
 		"liip/monitor-bundle": "^2.16",
 		"nelmio/api-doc-bundle": "^3.6",
+		"phpdocumentor/reflection-docblock": "^5.2",
 		"symfony/asset": "4.4.*",
 		"symfony/console": "4.4.*",
 		"symfony/dotenv": "4.4.*",
@@ -26,6 +28,9 @@
 		"symfony/framework-bundle": "4.4.*",
 		"symfony/messenger": "4.4.*",
 		"symfony/monolog-bundle": "^3.4",
+		"symfony/property-access": "4.4.*",
+		"symfony/property-info": "4.4.*",
+		"symfony/serializer": "4.4.*",
 		"symfony/yaml": "4.4.*"
 	},
 	"require-dev" : {

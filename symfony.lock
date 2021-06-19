@@ -420,6 +420,9 @@
     "symfony/process": {
         "version": "v4.4.25"
     },
+    "symfony/property-access": {
+        "version": "v4.4.25"
+    },
     "symfony/property-info": {
         "version": "v4.4.25"
     },
@@ -439,6 +442,9 @@
     },
     "symfony/serializer": {
         "version": "v4.4.25"
+    },
+    "symfony/serializer-pack": {
+        "version": "v1.0.4"
     },
     "symfony/service-contracts": {
         "version": "v2.4.0"
