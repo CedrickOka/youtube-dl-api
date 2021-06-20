@@ -46,9 +46,9 @@ class DownloadManager
         if (true === isset($options['proxyUrl'])) {
             $youtubeDlOptions[] = sprintf('--proxy %s', escapeshellarg($options['proxyUrl']));
         }
-        if (true === ($options['extractAudio'] ?? false) && true === isset($options['audioFormat'])) {
+        if (true === ($options['extractAudio'] ?? false)) {
             $youtubeDlOptions[] = '-x';
-            $youtubeDlOptions[] = sprintf('--audio-format %s', $options['audioFormat']);
+            $youtubeDlOptions[] = sprintf('--audio-format %s', $options['audioFormat'] ?? 'best');
         }
 
         $youtubeDlOptions[] = sprintf('--exec \'%s\'', implode(' && ', $commands));

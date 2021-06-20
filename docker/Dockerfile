@@ -65,12 +65,16 @@ ENV FILE_UNIX_OWNER=www-data
 ENV SUPERVISOR_NUMBER_PROCESSES=1
 
 ## Add youtube-dl and supervisor config file
-COPY docker/youtube-dl.conf /etc/youtube-dl.conf
+COPY docker/youtube-dl.conf.template /etc/youtube-dl.conf.template
 COPY docker/supervisor/messenger.template /etc/supervisor.d/messenger.template
 
 RUN mkdir -p ${ASSETS_DIR} && \
 	chown -R www-data:www-data ${ASSETS_DIR} && \
-	chmod -R 0755 /etc/youtube-dl.conf ${ASSETS_DIR}
+	chmod -R 0755 ${ASSETS_DIR}
+
+## Configure crontab
+COPY docker/crontab /crontab
+RUN /usr/bin/crontab -u www-data /crontab
 
 FROM dev as test
 
@@ -105,10 +109,6 @@ RUN set -ex && \
 
 ## Change files owner to php-fpm default user
 RUN chown -R www-data:www-data .
-
-## Configure crontab
-COPY docker/crontab /crontab
-RUN /usr/bin/crontab -u www-data /crontab
 
 ## Cleanup & Disable xdebug on production
 RUN set -ex && \
