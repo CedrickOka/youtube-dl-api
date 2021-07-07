@@ -6,7 +6,6 @@ services:
           /bin/sh -c "export FASTCGI_PASS_HOST=youtube-dl-api SERVER_LISTEN_PORT=80 && 
             envsubst '$$FASTCGI_PASS_HOST $$SERVER_LISTEN_PORT' < /etc/nginx/conf.d/default.template > /etc/nginx/conf.d/default.conf && 
             exec nginx -g 'daemon off;'"
-        container_name: nginx
         depends_on:
           - youtube-dl-api
         ports:
@@ -25,7 +24,6 @@ services:
             args:
                 VERSION: ${PHP_VERSION:-7.4}
             target: dev
-        container_name: youtube-dl-api
         environment:
             SHELL_VERBOSITY: ${SHELL_VERBOSITY:-3}
         healthcheck:
