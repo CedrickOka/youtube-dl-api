@@ -1,31 +1,32 @@
 .build-template: &build-template
     stage: build
     script:
-      - docker build --build-arg VERSION=$BUILD_VERSION --target $BUILD_TARGET -t $CI_REGISTRY_IMAGE:$BUILD_TARGET -f docker/Dockerfile .
+      - docker build --build-arg VERSION=$PHP_VERSION --target $BUILD_TARGET -t $CI_REGISTRY_IMAGE:$BUILD_TARGET -f docker/Dockerfile .
     after_script:
       # Save the image as an artifact
       - mkdir -p build/$CI_REGISTRY_IMAGE
+
       - docker save $CI_REGISTRY_IMAGE:$BUILD_TARGET -o build/$CI_REGISTRY_IMAGE/$BUILD_TARGET.tar
     artifacts:
-        name: $CI_JOB_NAME-${CI_COMMIT_SHA:0:8}
-        expire_in: 1 day
+        name: $CI_JOB_NAME-$CI_COMMIT_SHORT_SHA
+        expire_in: 1 hour
         paths:
           - build/$CI_REGISTRY_IMAGE
 
 .registry-update-template: &registry-update-template
     stage: registry-update
     before_script:
+      - echo "$CI_REGISTRY_PASSWORD" | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+
       # Load image from the build stage
       - docker load -i build/$CI_REGISTRY_IMAGE/prod.tar
-      - echo "$CI_REGISTRY_PASSWORD" | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
     dependencies:
       - build-prod
 
-# Select image from https://hub.docker.com/_/php/
-image: docker:latest
+image: docker:20.10.7
 
 services:
-  - docker:dind
+  - docker:20.10.7-dind
 
 stages:
   - analysis
@@ -33,21 +34,18 @@ stages:
   - test
   - registry-update
   - clean
+  - deploy
 
 variables:
     PHP_VERSION: "7.4"
 
-before_script:
-  # Export build version
-  - source .env && export BUILD_VERSION=$PHP_VERSION
-
 analysis-dockerfile:
     stage: analysis
-    image: hadolint/hadolint:latest-alpine
+    image: hadolint/hadolint:2.6.0-alpine
     script:
       - hadolint docker/Dockerfile
 
-build-test:
+.build-test:
     <<: *build-template
     variables:
         BUILD_TARGET: test
@@ -62,20 +60,26 @@ build-prod:
 
 test:
     variables:
-        NETWORK_NAME: $CI_PROJECT_PATH_SLUG-${CI_COMMIT_SHA:0:8}
+        NETWORK_NAME: $CI_PROJECT_PATH_SLUG-$CI_COMMIT_SHORT_SHA
     stage: test
     before_script:
       # Load php image from the build stage
       - docker load -i build/$CI_REGISTRY_IMAGE/test.tar
-#      - docker network create $NETWORK_NAME
-#      - docker run -e MYSQL_ROOT_PASSWORD=root --rm -d --network=$NETWORK_NAME --net-alias=mysql --expose=3306 --name=mysql mysql:5.7
+      - docker network create $NETWORK_NAME
+#      - docker run -e MYSQL_ROOT_PASSWORD=root --rm -d --network=$NETWORK_NAME --net-alias=mysql --name=mysql mysql:5.7
     script:
       # Validate composer.json and composer.lock & Coding standard
 #      - docker run -e SYMFONY_DEPRECATIONS_HELPER=weak --rm $CI_REGISTRY_IMAGE:test sh -c 'composer validate && composer php-cs-fixer && composer phpstan'
       - docker run -e SYMFONY_DEPRECATIONS_HELPER=weak --rm $CI_REGISTRY_IMAGE:test sh -c 'composer validate && composer php-cs-fixer'
 
        # Test App
-      - docker run -e SYMFONY_DEPRECATIONS_HELPER=weak --rm --network=$NETWORK_NAME $CI_REGISTRY_IMAGE:test sh -c 'php ./vendor/bin/phpunit -c phpunit.xml.dist --testdox --coverage-text --colors=never tests/'
+      - |
+        docker run \
+        -e SYMFONY_DEPRECATIONS_HELPER=weak \
+        --rm \
+        --network=$NETWORK_NAME \
+        $CI_REGISTRY_IMAGE:test \
+        sh -c 'php ./vendor/bin/phpunit -c phpunit.xml.dist --testdox --coverage-text --colors=never tests/'
 #      - |
 #        docker run \
 #        -e SYMFONY_DEPRECATIONS_HELPER=weak \
@@ -87,9 +91,9 @@ test:
 #                php /app/bin/console doctrine:database:create --if-not-exists && \
 #                php /app/bin/console doctrine:schema:update --force && \
 #                php ./vendor/bin/phpunit -c phpunit.xml.dist --testdox --coverage-text --colors=never tests/'
-#    after_script:
-#      - docker container stop mysql
-#      - docker network rm $NETWORK_NAME
+    after_script:
+      - docker container stop mysql
+      - docker network rm $NETWORK_NAME
     coverage: '/^\s*Lines:\s*\d+.\d+\%/'
     artifacts:
         paths:
@@ -130,21 +134,3 @@ clean:
       - docker image prune -f
     when: always
     allow_failure: true
-
-clean-test:
-    stage: clean
-    script:
-      - docker rmi $CI_REGISTRY_IMAGE:test
-    allow_failure: true
-    dependencies:
-      - build-test
-
-clean-prod:
-    stage: clean
-    script:
-      - docker rmi $CI_REGISTRY_IMAGE:prod
-    allow_failure: true
-    dependencies:
-      - build-prod
-    only:
-      - tags
