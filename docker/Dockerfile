@@ -19,7 +19,7 @@ RUN apk update && \
 		ffmpeg=4.3.1-r4 \
 		icu-dev=67.1-r2 \
 		gettext=0.20.2-r2 \
-		libxml2-dev=2.9.10-r7 \
+    	libxml2-dev=2.9.12-r0 \
 		libzip-dev=1.7.3-r2 \
 		python3=3.8.10-r0 \
 		py3-setuptools=51.3.3-r0 \
@@ -49,6 +49,16 @@ RUN wget -q https://yt-dl.org/latest/youtube-dl -O /usr/local/bin/youtube-dl && 
 	ln -s /usr/bin/python3 /usr/bin/python && \
 	hash -r
 
+ENV SUPERVISOR_NUMBER_PROCESSES=1
+
+## Add youtube-dl and supervisor config file
+COPY docker/youtube-dl.conf.template /etc/youtube-dl.conf.template
+COPY docker/supervisor/messenger.template /etc/supervisor.d/messenger.template
+
+## Configure crontab
+COPY docker/crontab /crontab
+RUN /usr/bin/crontab -u www-data /crontab
+
 ENTRYPOINT ["docker-symfony-entrypoint.sh"]
 CMD ["php-fpm"]
 
@@ -62,19 +72,9 @@ ENV MESSENGER_TRANSPORT_DSN=semaphore://localhost%kernel.project_dir%/.env
 ENV ASSETS_DIR=$ASSETS_DIR
 ENV FILE_UNIX_OWNER=www-data
 
-ENV SUPERVISOR_NUMBER_PROCESSES=1
-
-## Add youtube-dl and supervisor config file
-COPY docker/youtube-dl.conf.template /etc/youtube-dl.conf.template
-COPY docker/supervisor/messenger.template /etc/supervisor.d/messenger.template
-
 RUN mkdir -p ${ASSETS_DIR} && \
 	chown -R www-data:www-data ${ASSETS_DIR} && \
 	chmod -R 0755 ${ASSETS_DIR}
-
-## Configure crontab
-COPY docker/crontab /crontab
-RUN /usr/bin/crontab -u www-data /crontab
 
 FROM dev as test
 
