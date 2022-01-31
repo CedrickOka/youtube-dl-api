@@ -34,15 +34,20 @@
 		"symfony/yaml": "4.4.*"
 	},
 	"require-dev" : {
-        "friendsofphp/php-cs-fixer": "^2.18",
-        "phpstan/extension-installer": "^1.1",
-        "phpstan/phpstan": "^0.12.82",
-        "phpstan/phpstan-doctrine": "^0.12.33",
-        "phpstan/phpstan-phpunit": "^0.12.18",
-        "phpstan/phpstan-symfony": "^0.12.21",
-        "phpunit/phpunit": "^9.5",
-        "symfony/browser-kit": "4.4.*",
-        "symfony/phpunit-bridge": "^5.2"
+		"friendsofphp/php-cs-fixer" : "^3",
+		"phpstan/extension-installer" : "^1.1",
+		"phpstan/phpstan" : "^0.12.82",
+		"phpstan/phpstan-doctrine" : "^0.12.33",
+		"phpstan/phpstan-phpunit" : "^0.12.18",
+		"phpstan/phpstan-symfony" : "^0.12.21",
+		"phpunit/phpunit" : "^9.5",
+		"symfony/browser-kit" : "4.4.*",
+		"symfony/phpunit-bridge" : "^5.2"
+	},
+	"suggest" : {
+		"coka/pagination-bundle" : "^5.10",
+		"ramsey/uuid-doctrine": "^1.6",
+		"stof/doctrine-extensions-bundle" : "^1.7"
 	},
 	"config" : {
         "preferred-install": {
@@ -69,10 +74,10 @@
         "symfony/polyfill-php56": "*"
 	},
     "scripts": {
-		"php-cs-fixer": "php-cs-fixer fix --config=.php-cs-fixer.dist.php -v --dry-run --stop-on-violation --using-cache=no",
+		"php-cs-fixer" : "php-cs-fixer fix --config=.php-cs-fixer.dist.php -v --dry-run --stop-on-violation --using-cache=no",
 		"phpstan-src" : "phpstan analyse --memory-limit=-1 -c phpstan.neon src",
 		"phpstan-tests" : "phpstan analyse --memory-limit=-1 -c phpstan.test.neon tests",
-		"phpstan": [
+		"phpstan" : [
 			"@php bin/console cache:warmup --env=dev",
 			"@php bin/console cache:warmup --env=test",
 			"@phpstan-src",

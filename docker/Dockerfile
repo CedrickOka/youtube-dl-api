@@ -8,13 +8,11 @@ LABEL vendor="cedrickoka/youtube-dl-api" maintainer="okacedrick@gmail.com" versi
 WORKDIR /app
 
 ## Install system dependencies
+# hadolint ignore=DL3018,SC2086
 RUN apk update && \
-	apk add --no-cache --virtual dev-deps \
-		autoconf=2.69-r3 \
-		gcc=10.2.1_pre1-r3 \
-		git=2.30.2-r0 \
-		g++=10.2.1_pre1-r3 \
-		make=4.3-r0 && \
+    apk add --no-cache --virtual dev-deps \
+		$PHPIZE_DEPS \
+		git=2.30.2-r0 && \
 	apk add --no-cache \
 		ffmpeg=4.3.1-r4 \
 		icu-dev=67.1-r2 \
@@ -49,7 +47,7 @@ RUN wget -q https://yt-dl.org/latest/youtube-dl -O /usr/local/bin/youtube-dl && 
 	ln -s /usr/bin/python3 /usr/bin/python && \
 	hash -r
 
-ENV SUPERVISOR_NUMBER_PROCESSES=1
+ENV SUPERVISOR_NUMBER_PROCESSES=10
 
 ## Add youtube-dl and supervisor config file
 COPY docker/youtube-dl.conf.template /etc/youtube-dl.conf.template
@@ -113,6 +111,8 @@ RUN chown -R www-data:www-data .
 ## Cleanup & Disable xdebug on production
 RUN set -ex && \
 	apk del dev-deps && \
+	pecl clear-cache && \
 	rm  -rf /tmp/pear && \
+	rm -rf /app/docker && \
 	rm /usr/local/bin/composer && \
 	rm "$PHP_INI_DIR/conf.d/docker-php-ext-xdebug.ini"

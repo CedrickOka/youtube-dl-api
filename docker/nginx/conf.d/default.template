@@ -59,6 +59,6 @@ server {
 		return 404;
 	}
     
-    access_log /var/log/nginx/${FASTCGI_PASS_HOST}_access.log;
-    error_log /var/log/nginx/${FASTCGI_PASS_HOST}_error.log;
+    access_log /proc/self/fd/2;
+    error_log /proc/self/fd/2;
 }
