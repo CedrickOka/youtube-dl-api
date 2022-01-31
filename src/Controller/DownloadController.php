@@ -30,7 +30,6 @@ class DownloadController extends AbstractController
      *
      * @param string $version
      * @param string $protocol
-     * @param string $format
      * @Route(name="create", methods="POST")
      * @AccessControl(version="v1", protocol="rest", formats="json")
      * @RequestContent(constraints="createConstraints")
@@ -45,7 +44,7 @@ class DownloadController extends AbstractController
     public function create(Request $request, $version, $protocol, array $requestContent): JsonResponse
     {
         if (!shell_exec('command -v youtube-dl')) {
-            throw new HttpException(500, $this->get('translator')->trans('download.dependency_failed', [], 'app'));
+            throw new HttpException(500, $this->get('translator')->trans('http_error.unexpected_error', [], 'errors'));
         }
 
         if (true === $request->query->has('simulate')) {
@@ -71,7 +70,6 @@ class DownloadController extends AbstractController
      *
      * @param string $version
      * @param string $protocol
-     * @param string $format
      * @Route(name="list", methods="GET")
      * @AccessControl(version="v1", protocol="rest", formats="json")
      * @SWG\Response(response="200", description="List files downloaded")
@@ -81,7 +79,7 @@ class DownloadController extends AbstractController
     public function list(Request $request, $version, $protocol): JsonResponse
     {
         if (!$resource = @opendir($this->getParameter('assets_dir'))) {
-            throw new HttpException(500, $this->get('translator')->trans('download.unexpected_error', [], 'app'));
+            throw new HttpException(500, $this->get('translator')->trans('http_error.unexpected_error', [], 'errors'));
         }
 
         $files = [];
@@ -108,7 +106,6 @@ class DownloadController extends AbstractController
      *
      * @param string $version
      * @param string $protocol
-     * @param string $format
      * @Route(name="read", path="/{filename}", methods={"GET", "HEAD"})
      * @AccessControl(version="v1", protocol="rest", formats="json")
      * @SWG\Parameter(name="filename", type="string", in="path", required=true, description="The file name")
@@ -129,7 +126,7 @@ class DownloadController extends AbstractController
         $path = $this->getPath($filename);
 
         if (false === file_exists($path)) {
-            throw new NotFoundHttpException($this->get('translator')->trans('download.file.not_found', ['%filename%' => $filename], 'app'));
+            throw new NotFoundHttpException($this->get('translator')->trans('http_error.not_found', ['%identifier%' => $filename], 'errors'));
         }
 
         if (true === $request->isMethod('HEAD')) {
@@ -152,7 +149,6 @@ class DownloadController extends AbstractController
      *
      * @param string $version
      * @param string $protocol
-     * @param string $format
      * @Route(name="delete", path="/{filename}", methods="DELETE")
      * @AccessControl(version="v1", protocol="rest", formats="json")
      * @SWG\Parameter(name="filename", type="string", in="path", required=true, description="The file name")
@@ -164,11 +160,11 @@ class DownloadController extends AbstractController
         $path = $this->getPath($filename);
 
         if (false === file_exists($path)) {
-            throw new NotFoundHttpException($this->get('translator')->trans('download.file.not_found', ['%filename%' => $filename], 'app'));
+            throw new NotFoundHttpException($this->get('translator')->trans('http_error.not_found', ['%identifier%' => $filename], 'errors'));
         }
 
         if (false === @unlink($path)) {
-            throw new HttpException(500, $this->get('translator')->trans('download.unexpected_error', [], 'app'));
+            throw new HttpException(500, $this->get('translator')->trans('http_error.unexpected_error', [], 'errors'));
         }
 
         return new JsonResponse(null, 204);

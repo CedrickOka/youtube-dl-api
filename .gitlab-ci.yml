@@ -23,6 +23,14 @@
     dependencies:
       - build-prod
 
+.trigger-template: &trigger-template
+    stage: deploy
+    image: curlimages/curl:7.78.0
+    script:
+      - "curl -X POST -F token=$TRIGGER_DEPLOY_TOKEN -F ref=$TRIGGER_DEPLOY_REF_NAME -F variables[CD_YOUTUBE_DL_API_RELEASE]=$TRIGGER_DEPLOY_RELEASE $TRIGGER_DEPLOY_URL"
+    dependencies: []
+    allow_failure: true
+
 image: docker:20.10.7
 
 services:
@@ -66,10 +74,8 @@ test:
       # Load php image from the build stage
       - docker load -i build/$CI_REGISTRY_IMAGE/test.tar
       - docker network create $NETWORK_NAME
-#      - docker run -e MYSQL_ROOT_PASSWORD=root --rm -d --network=$NETWORK_NAME --net-alias=mysql --name=mysql mysql:5.7
     script:
       # Validate composer.json and composer.lock & Coding standard
-#      - docker run -e SYMFONY_DEPRECATIONS_HELPER=weak --rm $CI_REGISTRY_IMAGE:test sh -c 'composer validate && composer php-cs-fixer && composer phpstan'
       - docker run -e SYMFONY_DEPRECATIONS_HELPER=weak --rm $CI_REGISTRY_IMAGE:test sh -c 'composer validate && composer php-cs-fixer'
 
        # Test App
@@ -80,17 +86,6 @@ test:
         --network=$NETWORK_NAME \
         $CI_REGISTRY_IMAGE:test \
         sh -c 'php ./vendor/bin/phpunit -c phpunit.xml.dist --testdox --coverage-text --colors=never tests/'
-#      - |
-#        docker run \
-#        -e SYMFONY_DEPRECATIONS_HELPER=weak \
-#        -e DATABASE_URL=mysql://root:root@mysql:3306/collector?serverVersion=5.7 \
-#        --rm \
-#        --network=$NETWORK_NAME \
-#        $CI_REGISTRY_IMAGE:test \
-#        sh -c 'wait-for -t 60 mysql:3306 -- \
-#                php /app/bin/console doctrine:database:create --if-not-exists && \
-#                php /app/bin/console doctrine:schema:update --force && \
-#                php ./vendor/bin/phpunit -c phpunit.xml.dist --testdox --coverage-text --colors=never tests/'
     after_script:
       - docker container stop mysql
       - docker network rm $NETWORK_NAME
@@ -106,7 +101,7 @@ test:
 registry-update-latest:
     <<: *registry-update-template
     script:
-      # Tag the image
+      # Create latest tag
       - docker tag $CI_REGISTRY_IMAGE:prod $CI_REGISTRY_IMAGE
 
       # Push the image
@@ -117,7 +112,7 @@ registry-update-latest:
 registry-update-release:
     <<: *registry-update-template
     script:
-      # Tag the image
+      # Create release tag
       - docker tag $CI_REGISTRY_IMAGE:prod $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
 
       # Push the image
@@ -132,5 +127,20 @@ clean:
       - docker network prune -f
       - docker volume prune -f
       - docker image prune -f
+    dependencies: []
     when: always
     allow_failure: true
+
+.trigger-latest:
+    <<: *trigger-template
+    variables:
+        TRIGGER_DEPLOY_RELEASE: latest
+    only:
+      - master
+
+.trigger-release:
+    <<: *trigger-template
+    variables:
+        TRIGGER_DEPLOY_RELEASE: $CI_COMMIT_TAG
+    only:
+      - tags

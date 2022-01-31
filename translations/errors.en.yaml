@@ -1,0 +1,7 @@
+http_error:
+    bad_request: 'The parameters supplied for the query are not valid. '
+    forbidden: 'You do not have the rights to access this resource .'
+    not_found: 'The requested resource could not be found from the identifier "%identifier%" provided.'
+    unexpected_error: 'An unexpected error occurred while processing the request .'
+    service_unavailable: 'The request could not be processed due to a system problem .'
+    request_cannot_be_processed: 'The request cannot be processed in the current state, check that the resource with the identifier "%identifier%" is not linked to any other resources .'

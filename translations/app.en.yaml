@@ -1,7 +1,0 @@
-download:
-    bad_request: 'The parameters for the query are not valid.'
-    dependency_failed: 'The requested action depended on another action and that action failed.'
-    unexpected_error: 'An unexpected error occurred and prevented from performing the requested action.'
-    file:
-        not_found: 'The file "% filename%" was not found on this server.'
-        not_allowed: 'The file "% filename%" was not found on this server, it will not be possible to download it.'

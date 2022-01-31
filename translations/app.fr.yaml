@@ -1,7 +1,0 @@
-download:
-    bad_request: 'Les paramètres pour la requête ne sont pas valides.'
-    dependency_failed: 'L''action démandée dépend d''une autre action et cette action a échoué.'
-    unexpected_error: 'Une erreur inattendue est survenue et à empecher de réaliser l''action démandée.'
-    file:
-        not_found: 'Le fichier "%filename%" est introuvable sur ce serveur.'
-        not_allowed: 'Le fichier "%filename%" est introuvable sur ce serveur, il ne sera possible de le télécharger.'

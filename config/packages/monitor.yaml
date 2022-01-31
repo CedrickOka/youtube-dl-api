@@ -2,4 +2,7 @@ liip_monitor:
     # enabling the controller requires that `assets` are enabled in the framework bundle
     enable_controller: true
     checks:
+        cpu_performance: 1.0
         php_extensions: [apc, opcache]
+#        doctrine_dbal: [default]
+#        doctrine_mongodb: [default]
