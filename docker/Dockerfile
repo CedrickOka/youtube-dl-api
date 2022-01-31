@@ -14,7 +14,7 @@ RUN apk update && \
 		$PHPIZE_DEPS \
 		git=2.30.2-r0 && \
 	apk add --no-cache \
-		ffmpeg=4.3.1-r4 \
+		ffmpeg=4.3.3-r0 \
 		icu-dev=67.1-r2 \
 		gettext=0.20.2-r2 \
     	libxml2-dev=2.9.12-r0 \
