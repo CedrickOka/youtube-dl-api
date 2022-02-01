@@ -28,6 +28,8 @@ if [ "${APP_ENV}" != "test" ]; then
 	#	envsubst "$$PM_MAX_CHILDREN $$PM_MAX_REQUESTS" < /usr/local/etc/php-fpm.d/z-overrides.conf.template > /usr/local/etc/php-fpm.d/z-overrides.conf;
 	#fi
 	
+	envsubst < /etc/youtube-dl.conf.template > /etc/youtube-dl.conf
+	
 	## Add messenger confid and decomments here if supervisor configuration is necessary
 	envsubst < /etc/supervisor.d/messenger.template > /etc/supervisor.d/messenger.ini
 	supervisord -c /etc/supervisord.conf
