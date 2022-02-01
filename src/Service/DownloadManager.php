@@ -29,9 +29,6 @@ class DownloadManager
             throw new \InvalidArgumentException(sprintf('The following configuration are not supported "%s".', implode(', ', $diff)));
         }
 
-        $context = array_merge(['url' => $url], $options);
-        $this->logger->info('The download of the URL "{url}" has started.', $context);
-
         $youtubeDlOptions = [];
         $commands = ['chmod -R 0755 {}'];
         $escapedUrl = escapeshellarg($url);
@@ -52,9 +49,13 @@ class DownloadManager
         }
 
         $youtubeDlOptions[] = sprintf('--exec \'%s\'', implode(' && ', $commands));
+        $context = array_merge(['url' => $url], $options);
         $output = $status = null;
 
+        $this->logger->info('The download of the URL "{url}" will start now.', $context);
+
         exec(sprintf('youtube-dl -f best --audio-quality 0 --restrict-filenames --yes-playlist %s %s', implode(' ', $youtubeDlOptions), $escapedUrl), $output, $status);
+
         $this->logger->info('The download of the URL "{url}" has been executed by the "youtube-dl" programm with status [{status}].', array_merge(['output' => $output, 'status' => $status], $context));
 
         if (((int) $status) > 0 && true === isset($options['eventUrl'])) {

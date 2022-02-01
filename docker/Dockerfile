@@ -41,7 +41,7 @@ COPY docker/php/overrides.conf /usr/local/etc/php-fpm.d/z-overrides.conf
 COPY docker/docker-symfony-entrypoint.sh /usr/local/bin/docker-symfony-entrypoint.sh
 
 ## Install youtube-dl
-RUN wget -q https://yt-dl.org/latest/youtube-dl -O /usr/local/bin/youtube-dl && \
+RUN wget -q https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl && \
 	wget -q https://raw.githubusercontent.com/eficode/wait-for/v2.1.2/wait-for -O /usr/local/bin/wait-for && \
 	chmod a+x /usr/local/bin/youtube-dl /usr/local/bin/docker-symfony-entrypoint.sh /usr/local/bin/wait-for && \
 	ln -s /usr/bin/python3 /usr/bin/python && \

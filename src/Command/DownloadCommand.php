@@ -62,7 +62,7 @@ You can specify file unix owner :
 
   <info>php %command.full_name% --unixOwner=www-data https://www.youtube.com/watch?v=2ESAi2vq-80</info>
 EOF
-                );
+             );
     }
 
     /**
